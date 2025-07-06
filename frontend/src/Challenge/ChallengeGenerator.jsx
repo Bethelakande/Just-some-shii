@@ -9,6 +9,8 @@ export function ChallengeGenerator() {
     const [error, setError] = useState(null)
     const [difficulty, setDifficulty] = useState("easy")
     const [quota, setQuota] = useState(null)
+    const [file, setFile] = useState(null)
+    const [uploaded, setUploaded] = useState(false)
 
     const {makeRequest} = useApi()
 
@@ -52,6 +54,29 @@ export function ChallengeGenerator() {
         }
     }
     
+    const UploadFile = async() => {
+        setError(null)
+        try{
+            const formData = new FormData()
+            formData.append("file", file)
+            for (let [key, value] of formData.entries()) {
+                console.log(key, value);
+            }
+            const data = await makeRequest("upload",{
+                method: "POST",
+                body: formData
+            }) 
+            console.log(`data: ${data}`)
+            setUploaded(true)
+            fetchQuota()
+        } catch (error) {
+            console.error("Error generating challenge:", error)
+            setError(error.message || "Failed to generate challenge")
+        } finally {
+            setIsLoading(false)
+        }
+    }
+    
     const getNextResetTime = () =>{
         if (!quota?.last_reset_date){
             return "N/A"
@@ -61,6 +86,8 @@ export function ChallengeGenerator() {
         nextResetDate.setDate(nextResetDate.getDate() + 1)
         return nextResetDate.toLocaleString()
     }
+
+
     return <div className="challenge-generator">
         <h2>Coding Challenge Generator</h2>
 
@@ -70,6 +97,14 @@ export function ChallengeGenerator() {
                 <p> Next reset: {getNextResetTime()}</p>
             )}
         </div>
+        <div className="file-input"> 
+            <input type="file" name="file" id="file" onChange={(e) => setFile(e.target.files[0])}/>
+
+            <button onClick={UploadFile} disabled={file === null ? true : false}>Upload</button>
+        </div>
+
+
+
         <div className="difficulty-selector">
             <label htmlFor="difficulty">Select Difficulty</label>
             <select id="difficulty" value={difficulty} onChange={(e) => setDifficulty(e.target.value)} disabled={isLoading}>
@@ -79,7 +114,7 @@ export function ChallengeGenerator() {
             </select>
         </div>
         <button onClick={generateChallenge} 
-        disabled={false} 
+        disabled={uploaded === false ? true : false} 
         className="generate-button">
             {isLoading ? "Loading..." : "Generate Challenge"}
             </button>

@@ -13,6 +13,13 @@ export const useApi = () => {
             }
         }
 
+        if (Options.body instanceof FormData) {
+            delete defaultOptions.headers["Content-Type"]
+        }
+
+        console.log('Options: ', Options)
+        console.log('defaultOptions: ', defaultOptions)
+
         const response = await fetch(`http://localhost:8001/api/${endpoint}`,{
             ...defaultOptions,
             ...Options

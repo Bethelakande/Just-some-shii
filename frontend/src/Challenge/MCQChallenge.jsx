@@ -1,11 +1,25 @@
 import "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 export function MCQChallenge({Challenge, showExplanation = false}) {
     const [selectedOption, setSelectedOption] = useState(null)
     const [shouldShowExplanation, setShouldShowExplanation] = useState(showExplanation)
 
-    const options = typeof Challenge.options === "string" ? JSON.parse(Challenge.options) : Challenge.options
 
+
+    useEffect(() => {
+        // Reset selected option and explanation when Challenge changes
+        setSelectedOption(null)
+        setShouldShowExplanation(showExplanation)
+    }, [Challenge, showExplanation])
+
+    console.log('Challenge: ', Challenge)
+    const options = typeof Challenge.options === "string" 
+        ? JSON.parse(Challenge.options)
+        : Array.isArray(Challenge.options) 
+            ? Challenge.options.map(option => typeof option === 'object' ? option.value || option.description : option)
+            : [Challenge.options];
+
+    console.log('options: ', options)
 
     const handleOptionSelect = (index) => {
         if (selectedOption !== null) return
@@ -31,12 +45,14 @@ export function MCQChallenge({Challenge, showExplanation = false}) {
         <p className="challenge-title">{Challenge.title}</p>
         <div className="options">
             {options.map((option, index) => (
-                <div className={getOptionClass(index)} key={index} onClick={() => handleOptionSelect(index)}>{option}</div>
+                <div className={getOptionClass(index)} key={index} onClick={() => handleOptionSelect(index)}>
+                    {typeof option === 'object' ? option.value || option.description : option}
+                </div>
             ))}
         </div>
-        {shouldShowExplanation && selectedOption !== null && (
+        {shouldShowExplanation && (
             <div className="explanation">
-                <h4>Explanation</h4>
+                <h3>Explanation:</h3>
                 <p>{Challenge.explanation}</p>
             </div>
         )}
